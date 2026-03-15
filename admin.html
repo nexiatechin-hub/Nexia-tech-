@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexia Tech — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07070f;--surface:#0e0e1b;--card:#131324;--card2:#191930;--border:#1e1e35;--gold:#d4a853;--gold-l:#e8c278;--gold-d:rgba(212,168,83,.12);--gold-g:rgba(212,168,83,.25);--text:#eaeaf5;--muted:#6a6a8e;--dim:#2a2a45;--hot:#ff4d6d;--warm:#ff9f1c;--cold:#4ea8de;--green:#4ade80;--red:#f87171;--sw:260px;--r:12px;--rs:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
+::selection{background:var(--gold-d);color:var(--gold)}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;background-image:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(212,168,83,.07) 0%,transparent 70%)}
+#login-screen.gone{display:none}
+.lc{width:420px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px 40px;box-shadow:0 32px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.03);animation:fadeUp .5s ease both}
+.lc-logo{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+.lmark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#9a6b1e);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#000;flex-shrink:0;box-shadow:0 4px 16px rgba(212,168,83,.3)}
+.ltxt{font-family:'Syne',sans-serif;font-weight:700;font-size:20px}
+.ltxt em{color:var(--gold);font-style:normal}
+.lc h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:6px}
+.lc p{color:var(--muted);font-size:14px;margin-bottom:32px}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.fi{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--gold)}
+.fi::placeholder{color:var(--muted)}
+.lerr{color:var(--red);font-size:13px;margin-top:10px;display:none;animation:fadeUp .3s ease}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--rs);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .2s;text-decoration:none;white-space:nowrap}
+.btn-p{background:var(--gold);color:#000;font-weight:700;box-shadow:0 4px 16px rgba(212,168,83,.2)}
+.btn-p:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,83,.3)}
+.btn-o{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-o:hover{border-color:var(--gold);color:var(--gold)}
+.btn-d{background:rgba(248,113,113,.08);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.btn-d:hover{background:rgba(248,113,113,.15)}
+.btn-s{padding:6px 12px;font-size:12px}
+.btn-full{width:100%;padding:13px}
+
+/* ── APP LAYOUT ── */
+#app{display:none}
+#app.on{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sb{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-top{padding:18px 20px;border-bottom:1px solid var(--border)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),#9a6b1e);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#000;flex-shrink:0}
+.sb-brand{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
+.sb-brand em{color:var(--gold);font-style:normal}
+.sb-tag{background:var(--gold-d);color:var(--gold);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-radius:4px;padding:2px 6px;margin-left:auto}
+.sb-nav{padding:14px 10px;flex:1;overflow-y:auto}
+.nl{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;padding:0 10px;margin-bottom:4px;margin-top:14px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--rs);cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .2s;margin-bottom:1px;position:relative}
+.ni:hover{background:var(--card);color:var(--text)}
+.ni.on{background:var(--gold-d);color:var(--gold)}
+.ni.on::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--gold);border-radius:0 2px 2px 0}
+.ni svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+.ni.on svg{opacity:1}
+.nbadge{margin-left:auto;background:var(--card2);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;min-width:18px;text-align:center}
+.ni.on .nbadge{background:rgba(212,168,83,.2);color:var(--gold)}
+.sb-foot{padding:12px 10px;border-top:1px solid var(--border)}
+.ucard{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--rs)}
+.uav{width:30px;height:30px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-weight:700;flex-shrink:0}
+.uname{font-size:13px;font-weight:600}
+.urole{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
+.lout{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;margin-left:auto;transition:color .2s}
+.lout:hover{color:var(--red)}
+
+/* ── MAIN ── */
+.mc{margin-left:var(--sw);flex:1;padding:28px 32px;max-width:calc(100vw - var(--sw))}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.pt{font-family:'Syne',sans-serif;font-size:24px;font-weight:700}
+.ps{color:var(--muted);font-size:13px;margin-top:3px}
+
+/* ── SECTIONS ── */
+.sec{display:none;animation:fadeUp .3s ease}
+.sec.on{display:block}
+
+/* ── METRICS ── */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+.mc2{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;cursor:default}
+.mc2:hover{transform:translateY(-2px);border-color:var(--gold-g)}
+.mc2::after{content:'';position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;filter:blur(30px);opacity:.12}
+.mc2.tot::after{background:var(--gold)}
+.mc2.hot::after{background:var(--hot)}
+.mc2.wrm::after{background:var(--warm)}
+.mc2.cld::after{background:var(--cold)}
+.mlb{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.mv{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;line-height:1}
+.mc2.tot .mv{color:var(--gold)}
+.mc2.hot .mv{color:var(--hot)}
+.mc2.wrm .mv{color:var(--warm)}
+.mc2.cld .mv{color:var(--cold)}
+.msub{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
+.ct{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto;border-radius:var(--rs)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:9px 13px;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap;background:rgba(255,255,255,.01)}
+tbody tr{border-bottom:1px solid rgba(30,30,53,.6);transition:background .15s}
+tbody tr:hover{background:rgba(212,168,83,.025)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:11px 13px;white-space:nowrap}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.bh{background:rgba(255,77,109,.12);color:var(--hot)}
+.bw{background:rgba(255,159,28,.12);color:var(--warm)}
+.bc{background:rgba(78,168,222,.12);color:var(--cold)}
+.bg2{background:var(--gold-d);color:var(--gold)}
+.bdot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* ── CLIENTS GRID ── */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:border-color .2s,transform .2s}
+.cc:hover{border-color:var(--gold-g);transform:translateY(-2px)}
+.cch{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+.cav{width:40px;height:40px;background:var(--gold-d);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--gold);font-family:'Syne',sans-serif;font-weight:800;font-size:16px;flex-shrink:0}
+.cn{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.ci{font-size:12px;color:var(--muted);margin-top:1px}
+.cmeta{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.cmi{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.cmi svg{width:12px;height:12px;flex-shrink:0;opacity:.7}
+.alink{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:8px 11px;font-size:11px;color:var(--gold);font-family:'DM Mono',monospace;word-break:break-all;cursor:pointer;transition:all .2s;margin-bottom:12px;display:block}
+.alink:hover{border-color:var(--gold);background:var(--gold-d)}
+.cacts{display:flex;gap:7px;align-items:center}
+
+/* ── SEARCH ── */
+.sb2{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.siw{position:relative;flex:1;min-width:180px}
+.siw svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);pointer-events:none}
+.si{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:9px 13px 9px 34px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.si:focus{border-color:var(--gold)}
+.si::placeholder{color:var(--muted)}
+.fsel{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;transition:border-color .2s}
+.fsel:focus{border-color:var(--gold)}
+
+/* ── MODAL ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.ov.on{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:540px;padding:30px;box-shadow:0 32px 80px rgba(0,0,0,.6);transform:translateY(16px) scale(.98);transition:transform .25s}
+.ov.on .modal{transform:translateY(0) scale(1)}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.mtt{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.mx{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;transition:color .2s}
+.mx:hover{color:var(--text)}
+.mf{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg2 .fgfull{grid-column:1/-1}
+select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236a6a8e' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+
+/* ── SCORE BAR ── */
+.scd{display:inline-flex;align-items:center;gap:5px}
+.sb3{width:44px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.sf{height:100%;border-radius:2px}
+.tag{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px;color:var(--muted)}
+
+/* ── EMPTY ── */
+.es{text-align:center;padding:48px 20px;color:var(--muted)}
+.ei{font-size:44px;margin-bottom:12px;opacity:.5}
+.et{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px}
+
+/* ── TOAST ── */
+.tc{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px 15px;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease both;min-width:220px;display:flex;align-items:center;gap:8px}
+.toast.succ{border-left:3px solid var(--green)}
+.toast.err{border-left:3px solid var(--red)}
+.toast.inf{border-left:3px solid var(--gold)}
+
+/* ── SETTINGS ── */
+.st-sec{margin-bottom:26px}
+.st-t{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;color:var(--muted)}
+.st-grid span{color:var(--text)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sb{transform:translateX(-100%);transition:transform .3s}
+  .sb.open{transform:translateX(0)}
+  .mc{margin-left:0;padding:16px}
+  .fg2{grid-template-columns:1fr}
+  .cg{grid-template-columns:1fr}
+}
+
+/* ── ACTIVITY RING ── */
+.arc{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.arl{display:flex;align-items:center;gap:4px}
+.ard{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── LEAD SCORE CELL ── */
+td.sc-cell{font-family:'Syne',sans-serif;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lc">
+    <div class="lc-logo">
+      <div class="lmark">N</div>
+      <div class="ltxt">Nexia <em>Tech</em></div>
+    </div>
+    <h1>Admin Portal</h1>
+    <p>Sign in to manage your AI lead automation platform</p>
+    <div class="fg">
+      <label class="fl">Username</label>
+      <input class="fi" id="lu" type="text" placeholder="admin" autocomplete="off">
+    </div>
+    <div class="fg">
+      <label class="fl">Password</label>
+      <input class="fi" id="lp" type="password" placeholder="••••••••" autocomplete="off">
+    </div>
+    <button class="btn btn-p btn-full" onclick="doLogin()" style="margin-top:6px;">Sign In →</button>
+    <div class="lerr" id="lerr">⚠ Invalid credentials. Please try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sb" id="sidebar">
+    <div class="sb-top">
+      <div class="sb-logo">
+        <div class="sb-mark">N</div>
+        <div class="sb-brand">Nexia <em>Tech</em></div>
+        <div class="sb-tag">Pro</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nl">Main</div>
+      <div class="ni on" id="nav-dashboard" onclick="go('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </div>
+      <div class="ni" id="nav-leads" onclick="go('leads',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Lead CRM
+        <span class="nbadge" id="nb-leads"></span>
+      </div>
+      <div class="nl">Management</div>
+      <div class="ni" id="nav-clients" onclick="go('clients',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Clients
+        <span class="nbadge" id="nb-clients"></span>
+      </div>
+      <div class="ni" id="nav-settings" onclick="go('settings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12H4M20 12h2"/></svg>
+        Settings
+      </div>
+    </nav>
+    <div class="sb-foot">
+      <div class="ucard">
+        <div class="uav">A</div>
+        <div style="flex:1">
+          <div class="uname">Admin</div>
+          <div class="urole"><span class="dot-live"></span>Online</div>
+        </div>
+        <button class="lout" onclick="doLogout()" title="Logout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="mc">
+
+    <!-- DASHBOARD -->
+    <div id="sec-dashboard" class="sec on">
+      <div class="ph">
+        <div><div class="pt">Dashboard</div><div class="ps">Welcome back, Admin — here's your live overview</div></div>
+        <div style="font-size:12px;color:var(--muted);text-align:right;" id="ddate"></div>
+      </div>
+      <div class="mg">
+        <div class="mc2 tot"><div class="mlb">Total Leads</div><div class="mv" id="d-tot">0</div><div class="msub">All captured</div></div>
+        <div class="mc2 hot"><div class="mlb">🔥 Hot Leads</div><div class="mv" id="d-hot">0</div><div class="msub">Score 8–10</div></div>
+        <div class="mc2 wrm"><div class="mlb">⚡ Warm Leads</div><div class="mv" id="d-wrm">0</div><div class="msub">Score 5–7</div></div>
+        <div class="mc2 cld"><div class="mlb">❄ Cold Leads</div><div class="mv" id="d-cld">0</div><div class="msub">Score 0–4</div></div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <div class="ct">Recent Leads</div>
+          <button class="btn btn-o btn-s" onclick="go('leads',document.getElementById('nav-leads'))">View All →</button>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>Name</th><th>Industry</th><th>Location</th><th>Score</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="rec-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- LEADS CRM -->
+    <div id="sec-leads" class="sec">
+      <div class="ph">
+        <div><div class="pt">Lead CRM</div><div class="ps">All captured & qualified leads from AI agents</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-o btn-s" onclick="doExport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-d btn-s" onclick="clearLeads()">Clear All</button>
+        </div>
+      </div>
+      <div class="mg">
+        <div class="mc2 tot"><div class="mlb">Total</div><div class="mv" id="l-tot">0</div></div>
+        <div class="mc2 hot"><div class="mlb">🔥 Hot</div><div class="mv" id="l-hot">0</div></div>
+        <div class="mc2 wrm"><div class="mlb">⚡ Warm</div><div class="mv" id="l-wrm">0</div></div>
+        <div class="mc2 cld"><div class="mlb">❄ Cold</div><div class="mv" id="l-cld">0</div></div>
+      </div>
+      <div class="card">
+        <div class="sb2">
+          <div class="siw">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="si" id="ls" placeholder="Search name, phone, email..." oninput="renderLeads()">
+          </div>
+          <select class="fsel" id="fs" onchange="renderLeads()">
+            <option value="">All Status</option>
+            <option value="hot">🔥 Hot</option>
+            <option value="warm">⚡ Warm</option>
+            <option value="cold">❄ Cold</option>
+          </select>
+          <select class="fsel" id="fi2" onchange="renderLeads()">
+            <option value="">All Industries</option>
+            <option value="real estate">Real Estate</option>
+            <option value="car dealership">Car Dealership</option>
+            <option value="insurance">Insurance</option>
+            <option value="education">Education</option>
+            <option value="service business">Service Business</option>
+            <option value="home services">Home Services</option>
+          </select>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Industry</th><th>Interest</th><th>Budget</th><th>Location</th><th>Timeline</th><th>Score</th><th>Status</th><th>Date</th><th>Del</th></tr></thead>
+          <tbody id="l-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div id="sec-clients" class="sec">
+      <div class="ph">
+        <div><div class="pt">Clients</div><div class="ps">Manage clients & AI agent configurations</div></div>
+        <button class="btn btn-p" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Client
+        </button>
+      </div>
+      <div class="cg" id="cg"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="sec-settings" class="sec">
+      <div class="ph"><div><div class="pt">Settings</div><div class="ps">Platform configuration & AI keys</div></div></div>
+      <div class="card" style="max-width:540px">
+        <div class="st-sec">
+          <div class="st-t">AI Configuration</div>
+          <div class="fg">
+            <label class="fl">Anthropic API Key</label>
+            <input class="fi" id="s-key" type="password" placeholder="sk-ant-api03-...">
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">Powers real Claude AI conversations in agent pages. Stored locally.</div>
+          </div>
+        </div>
+        <div class="st-sec">
+          <div class="st-t">Notification Settings</div>
+          <div class="fg"><label class="fl">Notification Email</label><input class="fi" id="s-email" type="email" placeholder="alerts@yourcompany.com"></div>
+          <div class="fg"><label class="fl">WhatsApp Number (optional)</label><input class="fi" id="s-wa" type="text" placeholder="+92 300 0000000"></div>
+        </div>
+        <div class="st-sec">
+          <div class="st-t">Platform Info</div>
+          <div class="st-grid">
+            <div>Platform</div><span>Nexia Tech</span>
+            <div>Version</div><span>1.0.0</span>
+            <div>Plan</div><span style="color:var(--gold)">Professional</span>
+            <div>Storage</div><span>Local / Browser</span>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="ov" id="cm">
+  <div class="modal">
+    <div class="mh">
+      <div class="mtt" id="m-title">Add New Client</div>
+      <button class="mx" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="fg2">
+      <div class="fg fgfull"><label class="fl">Business Name *</label><input class="fi" id="c-nm" placeholder="e.g. Al Baraka Realty"></div>
+      <div class="fg"><label class="fl">Industry *</label>
+        <select class="fi" id="c-ind">
+          <option value="">Select Industry</option>
+          <option>Real Estate</option><option>Car Dealership</option><option>Insurance</option>
+          <option>Education</option><option>Service Business</option><option>Home Services</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">City</label><input class="fi" id="c-cy" placeholder="e.g. Lahore"></div>
+      <div class="fg"><label class="fl">Contact Email</label><input class="fi" id="c-em" type="email" placeholder="contact@business.com"></div>
+      <div class="fg"><label class="fl">Phone</label><input class="fi" id="c-ph" placeholder="+92 300 0000000"></div>
+      <div class="fg"><label class="fl">AI Agent Type</label>
+        <select class="fi" id="c-at">
+          <option value="Standard">Standard</option>
+          <option value="Advanced">Advanced</option>
+          <option value="Enterprise">Enterprise</option>
+        </select>
+      </div>
+      <div class="fg fgfull"><label class="fl">Client API Key (optional, overrides global)</label><input class="fi" id="c-ak" placeholder="sk-ant-api03-..."></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="m-btn" onclick="saveClient()">Add Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="tc" id="tc"></div>
+
+<script>
+// ── STATE ──
+let clients=JSON.parse(localStorage.getItem('nx_clients')||'[]');
+let leads=JSON.parse(localStorage.getItem('nx_leads')||'[]');
+let cfg=JSON.parse(localStorage.getItem('nx_cfg')||'{}');
+let editId=null;
+
+// ── AUTH ──
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value.trim();
+  const e=document.getElementById('lerr');
+  if(u==='admin'&&p==='nexia2024'){
+    e.style.display='none';
+    document.getElementById('login-screen').classList.add('gone');
+    document.getElementById('app').classList.add('on');
+    boot();
+  }else{
+    e.style.display='block';
+    const c=document.querySelector('.lc');
+    c.style.animation='none';
+    c.offsetHeight;
+    c.style.animation='shake .35s ease';
+  }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!document.getElementById('login-screen').classList.contains('gone'))doLogin();
+});
+function doLogout(){
+  document.getElementById('login-screen').classList.remove('gone');
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('lu').value='';
+  document.getElementById('lp').value='';
+}
+
+// ── BOOT ──
+function boot(){
+  const now=new Date();
+  document.getElementById('ddate').innerHTML=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})+'<br>'+now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  refreshMetrics();
+  renderRecent();
+  renderClients();
+  renderLeads();
+  updateBadges();
+  loadCfg();
+}
+
+// ── NAV ──
+function go(sec,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('sec-'+sec).classList.add('on');
+  if(el)el.classList.add('on');
+  if(sec==='leads')renderLeads();
+}
+
+// ── METRICS ──
+function refreshMetrics(){
+  const tot=leads.length;
+  const hot=leads.filter(l=>l.status==='hot').length;
+  const wrm=leads.filter(l=>l.status==='warm').length;
+  const cld=leads.filter(l=>l.status==='cold').length;
+  anim('d-tot',tot);anim('d-hot',hot);anim('d-wrm',wrm);anim('d-cld',cld);
+  anim('l-tot',tot);anim('l-hot',hot);anim('l-wrm',wrm);anim('l-cld',cld);
+}
+function anim(id,t){
+  const el=document.getElementById(id);if(!el)return;
+  const s=parseInt(el.textContent)||0,d=600,st=performance.now();
+  const f=n=>{const p=Math.min((n-st)/d,1);el.textContent=Math.round(s+(t-s)*p);if(p<1)requestAnimationFrame(f)};
+  requestAnimationFrame(f);
+}
+function updateBadges(){
+  const nl=document.getElementById('nb-leads');
+  const nc=document.getElementById('nb-clients');
+  if(nl)nl.textContent=leads.length||'';
+  if(nc)nc.textContent=clients.length||'';
+}
+
+// ── RECENT ──
+function renderRecent(){
+  const recent=[...leads].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+  const tb=document.getElementById('rec-tbody');
+  if(!recent.length){
+    tb.innerHTML=`<tr><td colspan="6"><div class="es"><div class="ei">📭</div><div class="et">No leads yet</div><div>Leads from your AI agents will appear here</div></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=recent.map(l=>{
+    const sb=badgeHtml(l.status);
+    const sc=l.score||0;
+    const sc_col=sc>=8?'var(--hot)':sc>=5?'var(--warm)':'var(--cold)';
+    const dt=l.date?new Date(l.date).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
+    return`<tr>
+      <td><strong>${l.name||'—'}</strong></td>
+      <td><span class="tag">${l.industry||'—'}</span></td>
+      <td>${l.location||l.city||'—'}</td>
+      <td style="font-family:'Syne',sans-serif;font-weight:700;color:${sc_col}">${sc}/10</td>
+      <td>${sb}</td>
+      <td style="color:var(--muted);font-size:12px">${dt}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── LEADS ──
+function renderLeads(){
+  const q=(document.getElementById('ls')?.value||'').toLowerCase();
+  const sf=document.getElementById('fs')?.value||'';
+  const inf=(document.getElementById('fi2')?.value||'').toLowerCase();
+  let fl=leads.filter(l=>{
+    const ms=!q||(l.name||'').toLowerCase().includes(q)||(l.phone||'').includes(q)||(l.email||'').toLowerCase().includes(q);
+    const mst=!sf||l.status===sf;
+    const mi=!inf||(l.industry||'').toLowerCase().includes(inf);
+    return ms&&mst&&mi;
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tb=document.getElementById('l-tbody');
+  if(!fl.length){
+    tb.innerHTML=`<tr><td colspan="13"><div class="es" style="padding:32px 0"><div class="ei">🔍</div><div class="et">No leads found</div></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=fl.map((l,i)=>{
+    const sc=l.score||0;
+    const col=sc>=8?'var(--hot)':sc>=5?'var(--warm)':'var(--cold)';
+    const dt=l.date?new Date(l.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+    return`<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><strong>${l.name||'—'}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${l.phone||'—'}</td>
+      <td style="font-size:12px">${l.email||'—'}</td>
+      <td><span class="tag">${l.industry||'—'}</span></td>
+      <td>${l.interest||'—'}</td>
+      <td>${l.budget||'—'}</td>
+      <td>${l.location||l.city||'—'}</td>
+      <td>${l.timeline||'—'}</td>
+      <td>
+        <div class="scd">
+          <span style="color:${col};font-family:'Syne',sans-serif;font-weight:700">${sc}</span>
+          <span style="color:var(--muted)">/10</span>
+          <div class="sb3"><div class="sf" style="width:${sc*10}%;background:${col}"></div></div>
+        </div>
+      </td>
+      <td>${badgeHtml(l.status)}</td>
+      <td style="color:var(--muted);font-size:11px">${dt}</td>
+      <td><button class="btn btn-d btn-s" onclick="delLead('${l.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+  refreshMetrics();
+}
+
+function badgeHtml(s){
+  if(s==='hot')return`<span class="badge bh"><span class="bdot"></span>Hot</span>`;
+  if(s==='warm')return`<span class="badge bw"><span class="bdot"></span>Warm</span>`;
+  return`<span class="badge bc"><span class="bdot"></span>Cold</span>`;
+}
+
+function delLead(id){
+  leads=leads.filter(l=>l.id!==id);
+  save();renderLeads();renderRecent();refreshMetrics();updateBadges();
+  toast('Lead deleted','inf');
+}
+function clearLeads(){
+  if(!confirm('Clear all leads? This cannot be undone.'))return;
+  leads=[];save();renderLeads();renderRecent();refreshMetrics();updateBadges();
+  toast('All leads cleared','inf');
+}
+function doExport(){
+  if(!leads.length){toast('No leads to export','err');return;}
+  const h=['Name','Phone','Email','Industry','Interest','Budget','Location','Timeline','Score','Status','Purpose','Date'];
+  const r=leads.map(l=>[l.name,l.phone,l.email,l.industry,l.interest,l.budget,l.location||l.city,l.timeline,l.score,l.status,l.purpose,l.date?new Date(l.date).toLocaleDateString():''].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv=[h.join(','),...r].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`nexia_leads_${Date.now()}.csv`;a.click();
+  toast('CSV exported ✓','succ');
+}
+
+// ── CLIENTS ──
+function renderClients(){
+  const g=document.getElementById('cg');
+  if(!clients.length){
+    g.innerHTML=`<div style="grid-column:1/-1"><div class="es"><div class="ei">🏢</div><div class="et">No clients yet</div><div>Add your first client to generate an AI agent link</div></div></div>`;return;
+  }
+  g.innerHTML=clients.map(c=>{
+    const slug=c.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+    const url=`agent.html?client=${slug}`;
+    const cnt=leads.filter(l=>l.clientId===c.id).length;
+    return`<div class="cc">
+      <div class="cch">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="cav">${c.name.charAt(0).toUpperCase()}</div>
+          <div><div class="cn">${c.name}</div><div class="ci">${c.industry}</div></div>
+        </div>
+        <span class="badge bg2">${c.agentType||'Standard'}</span>
+      </div>
+      <div class="cmeta">
+        ${c.email?`<div class="cmi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${c.email}</div>`:''}
+        ${c.phone?`<div class="cmi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.4 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6.16 6.16l1.06-1.06a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${c.phone}</div>`:''}
+        ${c.city?`<div class="cmi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${c.city}</div>`:''}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${cnt} lead${cnt!==1?'s':''} captured</div>
+      <div class="alink" onclick="cpLink('${url}')" title="Click to copy agent link">🔗 ${url}</div>
+      <div class="cacts">
+        <button class="btn btn-o btn-s" onclick="editClient('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit
+        </button>
+        <button class="btn btn-d btn-s" onclick="delClient('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete
+        </button>
+        <a href="${url}" target="_blank" class="btn btn-o btn-s" style="margin-left:auto">Open →</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(id){
+  editId=null;
+  document.getElementById('m-title').textContent='Add New Client';
+  document.getElementById('m-btn').textContent='Add Client';
+  ['c-nm','c-cy','c-em','c-ph','c-ak'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('c-ind').value='';
+  document.getElementById('c-at').value='Standard';
+  document.getElementById('cm').classList.add('on');
+}
+function closeModal(){document.getElementById('cm').classList.remove('on');editId=null;}
+function editClient(id){
+  const c=clients.find(x=>x.id===id);if(!c)return;
+  editId=id;
+  document.getElementById('m-title').textContent='Edit Client';
+  document.getElementById('m-btn').textContent='Save Changes';
+  document.getElementById('c-nm').value=c.name;
+  document.getElementById('c-ind').value=c.industry;
+  document.getElementById('c-cy').value=c.city||'';
+  document.getElementById('c-em').value=c.email||'';
+  document.getElementById('c-ph').value=c.phone||'';
+  document.getElementById('c-at').value=c.agentType||'Standard';
+  document.getElementById('c-ak').value=c.apiKey||'';
+  document.getElementById('cm').classList.add('on');
+}
+function saveClient(){
+  const nm=document.getElementById('c-nm').value.trim();
+  const ind=document.getElementById('c-ind').value;
+  if(!nm||!ind){toast('Please fill in required fields','err');return;}
+  const d={name:nm,industry:ind,city:document.getElementById('c-cy').value.trim(),email:document.getElementById('c-em').value.trim(),phone:document.getElementById('c-ph').value.trim(),agentType:document.getElementById('c-at').value,apiKey:document.getElementById('c-ak').value.trim()};
+  if(editId){
+    const i=clients.findIndex(x=>x.id===editId);
+    clients[i]={...clients[i],...d};
+    toast('Client updated ✓','succ');
+  }else{
+    d.id='c_'+Date.now();d.createdAt=new Date().toISOString();
+    clients.push(d);toast('Client added ✓','succ');
+  }
+  save();closeModal();renderClients();updateBadges();
+}
+function delClient(id){
+  if(!confirm('Delete this client?'))return;
+  clients=clients.filter(c=>c.id!==id);
+  save();renderClients();updateBadges();toast('Client deleted','inf');
+}
+function cpLink(url){
+  const full=window.location.origin+'/'+url;
+  navigator.clipboard.writeText(full).then(()=>toast('Agent link copied! 🔗','succ')).catch(()=>toast('Link: '+url,'inf'));
+}
+
+// ── SETTINGS ──
+function loadCfg(){
+  if(cfg.apiKey)document.getElementById('s-key').value=cfg.apiKey;
+  if(cfg.email)document.getElementById('s-email').value=cfg.email;
+  if(cfg.wa)document.getElementById('s-wa').value=cfg.wa;
+}
+function saveSettings(){
+  cfg.apiKey=document.getElementById('s-key').value.trim();
+  cfg.email=document.getElementById('s-email').value.trim();
+  cfg.wa=document.getElementById('s-wa').value.trim();
+  localStorage.setItem('nx_cfg',JSON.stringify(cfg));
+  toast('Settings saved ✓','succ');
+}
+
+// ── STORAGE ──
+function save(){
+  localStorage.setItem('nx_clients',JSON.stringify(clients));
+  localStorage.setItem('nx_leads',JSON.stringify(leads));
+}
+
+// ── TOAST ──
+function toast(msg,type='inf'){
+  const tc=document.getElementById('tc');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  const ic={succ:'✅',err:'❌',inf:'ℹ️'};
+  t.innerHTML=`<span>${ic[type]||''}</span> ${msg}`;
+  tc.appendChild(t);
+  setTimeout(()=>{t.style.transition='all .3s';t.style.opacity='0';t.style.transform='translateX(16px)';setTimeout(()=>t.remove(),300)},3000);
+}
+
+// ── LIVE SYNC ──
+window.addEventListener('storage',e=>{
+  if(e.key==='nx_leads'){
+    leads=JSON.parse(e.newValue||'[]');
+    renderLeads();renderRecent();refreshMetrics();updateBadges();
+  }
+});
+</script>
+</body>
+</html>

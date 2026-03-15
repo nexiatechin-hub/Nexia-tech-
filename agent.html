@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexia AI Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07070f;--surface:#0e0e1b;--card:#131324;--border:#1e1e35;--gold:#d4a853;--gold-l:#e8c278;--gold-d:rgba(212,168,83,.12);--text:#eaeaf5;--muted:#6a6a8e;--dim:#2a2a45;--hot:#ff4d6d;--warm:#ff9f1c;--cold:#4ea8de;--green:#4ade80;--user-bubble:#1e2a3a;--bot-bubble:#181826;--r:14px;--rs:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;
+  background-image:radial-gradient(ellipse 60% 30% at 50% 0%,rgba(212,168,83,.06) 0%,transparent 60%)}
+::selection{background:var(--gold-d);color:var(--gold)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;position:relative;z-index:10}
+.hmark{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),#9a6b1e);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#000;flex-shrink:0;box-shadow:0 4px 12px rgba(212,168,83,.3)}
+.htxt h1{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.htxt p{font-size:11px;color:var(--muted)}
+.hstatus{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.hdot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.hpow{font-size:10px;color:var(--muted);margin-left:auto;display:flex;align-items:center;gap:5px}
+.hpow span{color:var(--gold);font-weight:600}
+
+/* ── WELCOME SCREEN ── */
+#welcome{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;padding:20px;
+  background:var(--bg);
+  background-image:radial-gradient(ellipse 70% 40% at 50% 20%,rgba(212,168,83,.07) 0%,transparent 60%)}
+.wbox{width:100%;max-width:420px;animation:fadeUp .5s ease both}
+.wicon{width:64px;height:64px;background:linear-gradient(135deg,var(--gold),#9a6b1e);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;box-shadow:0 8px 32px rgba(212,168,83,.25)}
+.wbox h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;text-align:center;margin-bottom:6px}
+.wbox > p{text-align:center;color:var(--muted);font-size:14px;margin-bottom:28px}
+.wform{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:0 16px 48px rgba(0,0,0,.4)}
+.wf-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:16px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.fi{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--gold)}
+.fi::placeholder{color:var(--muted)}
+.wbtn{width:100%;background:linear-gradient(135deg,var(--gold),#b8892e);color:#000;border:none;border-radius:var(--rs);padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(212,168,83,.25);margin-top:4px}
+.wbtn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(212,168,83,.4)}
+.wbtn:active{transform:translateY(0)}
+.wpow{text-align:center;margin-top:14px;font-size:11px;color:var(--muted)}
+.wpow span{color:var(--gold);font-weight:600}
+
+/* ── CHAT AREA ── */
+#chat-screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+#chat-screen.on{display:flex}
+.msgs{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px}
+
+/* ── MESSAGE BUBBLES ── */
+.msg{display:flex;gap:10px;animation:msgIn .35s ease both;max-width:100%}
+.msg.user{flex-direction:row-reverse}
+.mavt{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+.mavt.bot{background:linear-gradient(135deg,var(--gold),#9a6b1e);color:#000;font-family:'Syne',sans-serif;font-size:11px}
+.mavt.user{background:var(--user-bubble);color:var(--text)}
+.bubble{max-width:72%;padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.55;position:relative}
+.bubble.bot{background:var(--bot-bubble);border:1px solid var(--border);border-radius:4px 16px 16px 16px}
+.bubble.user{background:var(--user-bubble);border:1px solid rgba(212,168,83,.15);border-radius:16px 4px 16px 16px;color:var(--gold-l)}
+.bubble.sys{background:var(--gold-d);border:1px solid rgba(212,168,83,.2);border-radius:16px;color:var(--gold);font-size:12px;font-weight:500;text-align:center;max-width:90%;margin:0 auto;padding:8px 14px}
+.msg.sys-msg{justify-content:center}
+.btime{font-size:10px;color:var(--muted);margin-top:4px;text-align:right}
+.bubble.user .btime{text-align:left}
+
+/* ── TYPING ── */
+.typing-msg{display:flex;gap:10px;animation:msgIn .3s ease both}
+.tdots{background:var(--bot-bubble);border:1px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 16px;display:flex;align-items:center;gap:4px}
+.td{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:tdot 1.2s ease-in-out infinite}
+.td:nth-child(2){animation-delay:.2s}
+.td:nth-child(3){animation-delay:.4s}
+
+/* ── QUICK REPLIES ── */
+.qr{padding:12px 16px 8px;display:flex;flex-wrap:wrap;gap:7px;border-top:1px solid rgba(30,30,53,.5);flex-shrink:0}
+.qbtn{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);cursor:pointer;transition:all .2s;white-space:nowrap}
+.qbtn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-d)}
+
+/* ── TEXT INPUT ── */
+.inp-area{padding:10px 14px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:var(--surface)}
+.inp-area.hidden{display:none}
+.chat-inp{flex:1;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:10px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:none;transition:border-color .2s;max-height:100px}
+.chat-inp:focus{border-color:var(--gold)}
+.chat-inp::placeholder{color:var(--muted)}
+.send-btn{width:40px;height:40px;background:var(--gold);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.send-btn:hover{background:var(--gold-l);transform:scale(1.05)}
+.send-btn svg{width:16px;height:16px;color:#000}
+
+/* ── AGENT PROCESSING ── */
+#proc-overlay{position:absolute;inset:0;background:rgba(7,7,15,.92);backdrop-filter:blur(8px);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+#proc-overlay.on{display:flex;animation:fadeIn .4s ease}
+.proc-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.proc-card h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+.proc-card p{color:var(--muted);font-size:13px;margin-bottom:28px}
+.agents-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;text-align:left}
+.ag-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border-radius:var(--rs);border:1px solid var(--border);transition:all .3s}
+.ag-item.done{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.04)}
+.ag-item.active{border-color:var(--gold-l);background:var(--gold-d);animation:pulseCard .8s ease infinite}
+.ag-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ag-txt{flex:1}
+.ag-nm{font-size:13px;font-weight:600}
+.ag-st{font-size:11px;color:var(--muted)}
+.ag-item.done .ag-st{color:var(--green)}
+.ag-item.active .ag-st{color:var(--gold)}
+.ag-chk{font-size:14px}
+.proc-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px}
+.proc-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:2px;width:0%;transition:width .5s ease}
+
+/* ── LEAD REPORT ── */
+#report-screen{display:none;flex-direction:column;flex:1;overflow-y:auto}
+#report-screen.on{display:flex;animation:fadeUp .5s ease both}
+.rpt{padding:20px 16px 32px;max-width:500px;margin:0 auto;width:100%}
+.rpt-hero{background:linear-gradient(135deg,var(--card),var(--surface));border:1px solid var(--border);border-radius:18px;padding:26px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden}
+.rpt-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:var(--gold);filter:blur(50px);opacity:.07}
+.score-ring{width:90px;height:90px;margin:0 auto 14px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring .bg-circle{fill:none;stroke:var(--border);stroke-width:6}
+.score-ring .fg-circle{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dasharray 1.2s ease;stroke-dasharray:0 251}
+.score-number{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px}
+.rpt-status{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:10px}
+.rpt-hero h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px}
+.rpt-hero p{color:var(--muted);font-size:13px}
+.rpt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:12px}
+.rpt-card-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.rpt-rows{display:flex;flex-direction:column;gap:8px}
+.rpt-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,30,53,.5)}
+.rpt-row:last-child{border-bottom:none}
+.rk{font-size:12px;color:var(--muted);font-weight:500}
+.rv{font-size:13px;font-weight:600;color:var(--text);text-align:right}
+.rpt-agents{display:flex;flex-direction:column;gap:6px}
+.ag-badge{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-radius:var(--rs);border:1px solid var(--border);font-size:12px}
+.ag-badge-ico{font-size:14px}
+.ag-badge-nm{font-weight:600}
+.ag-badge-st{margin-left:auto;color:var(--green);font-size:11px;font-weight:600}
+.rpt-actions{display:flex;gap:10px;margin-top:16px}
+.rpt-btn{flex:1;padding:12px;border-radius:var(--rs);border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;transition:all .2s}
+.rpt-btn.primary{background:var(--gold);color:#000;box-shadow:0 4px 16px rgba(212,168,83,.2)}
+.rpt-btn.primary:hover{background:var(--gold-l)}
+.rpt-btn.sec{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.rpt-btn.sec:hover{border-color:var(--gold);color:var(--gold)}
+.notif-banner{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:12px}
+.notif-banner span{font-weight:600;color:var(--green)}
+
+/* ── SCORE FACTOR BARS ── */
+.factor-bar{margin-bottom:10px}
+.fb-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.fb-lb{color:var(--muted)}
+.fb-vl{color:var(--text);font-weight:600}
+.fb-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.fb-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes pulseCard{0%,100%{box-shadow:0 0 0 0 rgba(212,168,83,0)}50%{box-shadow:0 0 0 4px rgba(212,168,83,.12)}}
+@keyframes dashAnim{from{stroke-dasharray:0 251}to{stroke-dasharray:var(--da) 251}}
+
+@media(max-width:480px){.bubble{max-width:88%}.rpt{padding:12px 12px 24px}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hmark">N</div>
+  <div class="htxt">
+    <h1>Nexia AI Assistant</h1>
+    <p id="h-client">Powered by Nexia Tech</p>
+  </div>
+  <div class="hstatus">
+    <span class="hdot"></span>
+    <span>Live</span>
+  </div>
+</header>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome">
+  <div class="wbox">
+    <div class="wicon">🤖</div>
+    <h2>Start Your AI Consultation</h2>
+    <p>Our intelligent assistant will guide you through personalized questions to find the best solutions for your needs.</p>
+    <div class="wform">
+      <div class="wf-title">Your Information</div>
+      <div class="fg">
+        <label class="fl">Full Name</label>
+        <input class="fi" id="w-name" type="text" placeholder="e.g. Ahmad Hassan">
+      </div>
+      <div class="fg">
+        <label class="fl">Phone Number</label>
+        <input class="fi" id="w-phone" type="tel" placeholder="+92 300 0000000">
+      </div>
+      <div class="fg">
+        <label class="fl">City</label>
+        <input class="fi" id="w-city" type="text" placeholder="e.g. Lahore">
+      </div>
+      <button class="wbtn" onclick="startChat()">Start AI Assistant →</button>
+    </div>
+    <div class="wpow">🔒 Powered by <span>Nexia AI</span> — Your data is secure</div>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chat-screen">
+  <div class="msgs" id="msgs"></div>
+  <div class="qr" id="qr" style="display:none"></div>
+  <div class="inp-area hidden" id="inp-area">
+    <input class="chat-inp" id="chat-inp" placeholder="Type your answer..." onkeydown="if(event.key==='Enter')sendText()">
+    <button class="send-btn" onclick="sendText()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PROCESSING OVERLAY -->
+<div id="proc-overlay">
+  <div class="proc-card">
+    <h3>🔍 Analyzing Your Lead</h3>
+    <p>Our multi-agent AI system is qualifying your profile...</p>
+    <div class="agents-list" id="ag-list">
+      <div class="ag-item" id="ag-1">
+        <div class="ag-ico" style="background:rgba(212,168,83,.12)">💬</div>
+        <div class="ag-txt"><div class="ag-nm">Conversation Agent</div><div class="ag-st">Processing responses...</div></div>
+        <div class="ag-chk" id="chk-1"></div>
+      </div>
+      <div class="ag-item" id="ag-2">
+        <div class="ag-ico" style="background:rgba(78,168,222,.12)">🎯</div>
+        <div class="ag-txt"><div class="ag-nm">Qualification Agent</div><div class="ag-st">Waiting...</div></div>
+        <div class="ag-chk" id="chk-2"></div>
+      </div>
+      <div class="ag-item" id="ag-3">
+        <div class="ag-ico" style="background:rgba(74,222,128,.12)">📊</div>
+        <div class="ag-txt"><div class="ag-nm">Lead Analysis Agent</div><div class="ag-st">Waiting...</div></div>
+        <div class="ag-chk" id="chk-3"></div>
+      </div>
+      <div class="ag-item" id="ag-4">
+        <div class="ag-ico" style="background:rgba(255,77,109,.12)">📧</div>
+        <div class="ag-txt"><div class="ag-nm">Notification Agent</div><div class="ag-st">Waiting...</div></div>
+        <div class="ag-chk" id="chk-4"></div>
+      </div>
+    </div>
+    <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
+  </div>
+</div>
+
+<!-- REPORT SCREEN -->
+<div id="report-screen">
+  <div class="rpt">
+    <div class="notif-banner">
+      ✅ <div>Lead report sent to <span id="rpt-notify-email">your sales agent</span></div>
+    </div>
+    <div class="rpt-hero">
+      <div class="score-ring">
+        <svg viewBox="0 0 90 90" width="90" height="90">
+          <circle class="bg-circle" cx="45" cy="45" r="40"/>
+          <circle class="fg-circle" id="score-circle" cx="45" cy="45" r="40"/>
+        </svg>
+        <div class="score-number" id="rpt-score-num">0</div>
+      </div>
+      <div class="rpt-status" id="rpt-status-badge"></div>
+      <h2 id="rpt-headline">Lead Report</h2>
+      <p id="rpt-subline">Qualification complete</p>
+    </div>
+
+    <div class="rpt-card">
+      <div class="rpt-card-title">📋 Lead Profile</div>
+      <div class="rpt-rows" id="rpt-rows"></div>
+    </div>
+
+    <div class="rpt-card">
+      <div class="rpt-card-title">📈 Score Breakdown</div>
+      <div id="score-factors"></div>
+    </div>
+
+    <div class="rpt-card">
+      <div class="rpt-card-title">🤖 Agents Deployed</div>
+      <div class="rpt-agents">
+        <div class="ag-badge"><span class="ag-badge-ico">💬</span><div><div class="ag-badge-nm">Conversation Agent</div><div style="font-size:11px;color:var(--muted)">Collected responses</div></div><span class="ag-badge-st">✓ Done</span></div>
+        <div class="ag-badge"><span class="ag-badge-ico">🎯</span><div><div class="ag-badge-nm">Qualification Agent</div><div style="font-size:11px;color:var(--muted)">Analyzed seriousness</div></div><span class="ag-badge-st">✓ Done</span></div>
+        <div class="ag-badge"><span class="ag-badge-ico">📊</span><div><div class="ag-badge-nm">Lead Analysis Agent</div><div style="font-size:11px;color:var(--muted)">Generated report</div></div><span class="ag-badge-st">✓ Done</span></div>
+        <div class="ag-badge"><span class="ag-badge-ico">📧</span><div><div class="ag-badge-nm">Notification Agent</div><div style="font-size:11px;color:var(--muted)">Report dispatched</div></div><span class="ag-badge-st">✓ Sent</span></div>
+      </div>
+    </div>
+
+    <div class="rpt-actions">
+      <button class="rpt-btn primary" onclick="window.location.reload()">Start New →</button>
+      <button class="rpt-btn sec" onclick="shareReport()">Share Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── INIT ──
+const params=new URLSearchParams(location.search);
+const clientSlug=params.get('client')||'';
+const clients=JSON.parse(localStorage.getItem('nx_clients')||'[]');
+const cfg=JSON.parse(localStorage.getItem('nx_cfg')||'{}');
+const client=clients.find(c=>c.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')===clientSlug)||null;
+const industry=(client?.industry||'Real Estate').toLowerCase();
+const apiKey=client?.apiKey||cfg.apiKey||'';
+const notifEmail=client?.email||cfg.email||'';
+
+// Update header
+if(client){
+  document.getElementById('h-client').textContent=client.name+' · '+client.industry;
+}
+
+// ── LEAD DATA ──
+let lead={name:'',phone:'',city:'',industry:client?.industry||'Real Estate',clientId:client?.id||'',score:0,status:'cold'};
+let convoHistory=[];
+let step=0;
+let useAPI=!!apiKey;
+
+// ── INDUSTRY CONFIGS ──
+const configs={
+  'real estate':{
+    greeting:'property',
+    q1:{text:'What type of property are you looking for?',opts:['🏠 Apartment','🏡 Villa','🌿 Land / Plot','🏢 Commercial']},
+    q2:{text:'Which area or location do you prefer?',free:true,placeholder:'e.g. DHA, Bahria Town, Gulberg...'},
+    q3:{text:'What is your budget range?',opts:['Under 50 Lakh','50L – 1 Crore','1 Crore – 3 Crore','3 Crore+']},
+    q4:{text:'What is your timeline to purchase?',opts:['Immediately','Within 1 Month','3–6 Months','Just Exploring']},
+    q5:{text:'What is the purpose of this purchase?',opts:['Personal Use 🏠','Investment 📈','Both','Business / Commercial']},
+    fields:['Type','Location','Budget','Timeline','Purpose']
+  },
+  'car dealership':{
+    greeting:'vehicle',
+    q1:{text:'What type of vehicle are you interested in?',opts:['🚗 Sedan','🚙 SUV / Crossover','🛻 Pickup / Truck','💎 Luxury / Premium']},
+    q2:{text:'Do you prefer new or used?',opts:['Brand New','Certified Pre-owned','Either is fine']},
+    q3:{text:'What is your budget range?',opts:['Under 30 Lakh','30L – 60L','60L – 1.2 Crore','1.2 Crore+']},
+    q4:{text:'When are you looking to buy?',opts:['This Week','This Month','2–3 Months','Just Browsing']},
+    q5:{text:'What will be the primary use?',opts:['Daily Commute 🚗','Family Use 👨‍👩‍👧','Business Use 💼','Adventure / Off-road 🏕']},
+    fields:['Vehicle Type','Condition','Budget','Timeline','Use']
+  },
+  'insurance':{
+    greeting:'insurance plan',
+    q1:{text:'What type of insurance are you looking for?',opts:['❤️ Life Insurance','🏥 Health Insurance','🚗 Vehicle Insurance','🏠 Home / Property']},
+    q2:{text:'What coverage amount are you looking for?',opts:['Under 10 Lakh','10L – 50L','50L – 1 Crore','1 Crore+']},
+    q3:{text:'Do you currently have any insurance coverage?',opts:['Yes, upgrading','No, first time','Expired / Lapsed','Not sure']},
+    q4:{text:'How soon do you need the coverage?',opts:['Immediately','Within 1 Month','2–3 Months','Just Comparing']},
+    q5:{text:'Who is this insurance for?',opts:['Myself only','Self + Family 👨‍👩‍👧','Business Employees','Investment Purpose']},
+    fields:['Type','Coverage','Current Status','Timeline','For Whom']
+  },
+  'education':{
+    greeting:'education opportunity',
+    q1:{text:'Which destination are you interested in?',opts:['🇬🇧 United Kingdom','🇺🇸 USA / Canada','🇦🇺 Australia','🌍 Europe / Other']},
+    q2:{text:'What level of study are you targeting?',opts:["Bachelor's Degree","Master's Degree","PhD / Research",'Short Course / Diploma']},
+    q3:{text:'What is your estimated budget for education?',opts:['Under $20,000','$20K – $50K','$50K – $100K','$100K+']},
+    q4:{text:'When do you plan to start?',opts:['Upcoming Intake','In 6 Months','Next Year','Not Sure Yet']},
+    q5:{text:'What field do you want to study?',free:true,placeholder:'e.g. Business, Engineering, Medicine, Law...'},
+    fields:['Destination','Level','Budget','Start Date','Field']
+  },
+  'service business':{
+    greeting:'service',
+    q1:{text:'What service are you looking for?',opts:['IT / Tech Services 💻','Marketing / Digital 📱','Consulting / Legal 📋','Other Professional Service']},
+    q2:{text:'Is this for personal or business use?',opts:['Personal','Small Business','Large Business / Corporate','Non-profit / NGO']},
+    q3:{text:'What is your approximate budget?',opts:['Under $500','$500 – $2,000','$2,000 – $10,000','$10,000+']},
+    q4:{text:'When do you need this service?',opts:['Urgently (This Week)','Within 1 Month','1–3 Months','Planning Ahead']},
+    q5:{text:'Briefly describe your main requirement:',free:true,placeholder:'e.g. Need a website redesign for my business...'},
+    fields:['Service Type','Client Type','Budget','Timeline','Requirement']
+  },
+  'home services':{
+    greeting:'home service',
+    q1:{text:'What type of home service do you need?',opts:['🔧 Plumbing / AC','🎨 Painting / Renovation','⚡ Electrical Work','🌿 Landscaping / Cleaning']},
+    q2:{text:'What is the size of the project?',opts:['Small (1–2 rooms)','Medium (Full apartment)','Large (Full house)','Commercial / Office']},
+    q3:{text:'What is your budget range?',opts:['Under 50,000','50K – 2 Lakh','2 Lakh – 5 Lakh','5 Lakh+']},
+    q4:{text:'When do you need this done?',opts:['Immediately','Within 2 Weeks','Within 1 Month','Just Getting Quotes']},
+    q5:{text:'Any specific requirements or notes?',free:true,placeholder:'e.g. Need AC installation for 3 rooms...'},
+    fields:['Service','Project Size','Budget','Timeline','Notes']
+  }
+};
+
+function getCfg(){
+  return configs[industry]||configs['real estate'];
+}
+
+// ── SCORING ──
+function scoreLead(answers){
+  let sc=0;
+  const ind=industry;
+  const cfg2=getCfg();
+  
+  // Budget scoring
+  const budg=answers.budget||'';
+  if(budg.includes('3 Crore+')||budg.includes('1.2 Crore')||budg.includes('1 Crore+')||budg.includes('$100K')||budg.includes('$50K')||budg.includes('5 Lakh+')||budg.includes('2 Lakh'))sc+=3;
+  else if(budg.includes('1 Crore')||budg.includes('60L')||budg.includes('50L')||budg.includes('$20K')||budg.includes('50,000')||budg.includes('$10,000')||budg.includes('50L – 1'))sc+=2;
+  else if(budg)sc+=1;
+
+  // Timeline scoring
+  const tl=answers.timeline||'';
+  if(tl.includes('Immediately')||tl.includes('This Week')||tl.includes('Urgently'))sc+=3;
+  else if(tl.includes('1 Month')||tl.includes('Month'))sc+=2;
+  else if(tl.includes('3')||tl.includes('6')||tl.includes('2–3')||tl.includes('Upcoming'))sc+=1;
+
+  // Purpose / intent
+  const purp=answers.purpose||answers.q5||'';
+  if(purp&&!purp.includes('Exploring')&&!purp.includes('Browsing')&&!purp.includes('Comparing')&&!purp.includes('Not Sure'))sc+=2;
+  else if(purp)sc+=1;
+
+  // Location / detail completeness
+  if((answers.location||'').length>2)sc+=1;
+
+  // Interest clarity
+  if(answers.interest&&!answers.interest.includes('?'))sc+=1;
+
+  return Math.min(sc,10);
+}
+
+// ── CHAT ENGINE ──
+let answers={};
+let steps=[];
+let currentStep=0;
+
+function buildSteps(name){
+  const c=getCfg();
+  return [
+    {type:'bot',msg:`Hello ${name}! 👋 Welcome to <strong>Nexia AI</strong>.<br><br>I'm here to help you find the perfect <strong>${c.greeting}</strong> that matches your needs. This will only take 2 minutes.`,delay:600},
+    {type:'question',key:'interest',msg:`Great! Let's start — <strong>${c.q1.text}</strong>`,opts:c.q1.opts,free:c.q1.free,placeholder:c.q1.placeholder,delay:1200},
+    {type:'question',key:'location',msg:`Perfect choice! 🎯<br><br><strong>${c.q2.text}</strong>`,opts:c.q2.opts,free:c.q2.free||false,placeholder:c.q2.placeholder,delay:1000},
+    {type:'question',key:'budget',msg:`Good to know! 💰<br><br><strong>${c.q3.text}</strong>`,opts:c.q3.opts,free:c.q3.free,placeholder:c.q3.placeholder,delay:1000},
+    {type:'question',key:'timeline',msg:`Understood. 📅<br><br><strong>${c.q4.text}</strong>`,opts:c.q4.opts,free:c.q4.free,placeholder:c.q4.placeholder,delay:1000},
+    {type:'question',key:'purpose',msg:`Almost done! ✨<br><br><strong>${c.q5.text}</strong>`,opts:c.q5.opts,free:c.q5.free,placeholder:c.q5.placeholder,delay:1000},
+    {type:'end',delay:1000}
+  ];
+}
+
+function startChat(){
+  const name=document.getElementById('w-name').value.trim();
+  const phone=document.getElementById('w-phone').value.trim();
+  const city=document.getElementById('w-city').value.trim();
+  if(!name||!phone){showWelcomeError('Please enter your name and phone number.');return;}
+
+  lead.name=name;lead.phone=phone;lead.city=city;
+  answers.city=city;
+
+  document.getElementById('welcome').style.display='none';
+  document.getElementById('chat-screen').classList.add('on');
+
+  if(useAPI){
+    startAPIChat(name,phone,city);
+  }else{
+    steps=buildSteps(name);
+    currentStep=0;
+    processStep();
+  }
+}
+
+function showWelcomeError(msg){
+  let e=document.querySelector('.w-error');
+  if(!e){e=document.createElement('p');e.className='w-error';e.style.cssText='color:#f87171;font-size:13px;margin-top:8px;text-align:center';document.querySelector('.wform').appendChild(e);}
+  e.textContent=msg;
+}
+
+// ── SCRIPTED FLOW ──
+function processStep(){
+  if(currentStep>=steps.length)return;
+  const s=steps[currentStep];
+  setTimeout(()=>{
+    if(s.type==='bot'){
+      showTyping().then(()=>addBotMsg(s.msg));
+      currentStep++;
+      setTimeout(processStep,s.delay+800);
+    }else if(s.type==='question'){
+      showTyping().then(()=>{
+        addBotMsg(s.msg);
+        if(s.free){
+          showTextInput(s.placeholder||'Type your answer...',s.key);
+        }else{
+          showQuickReplies(s.opts,s.key);
+        }
+      });
+    }else if(s.type==='end'){
+      showTyping().then(()=>{
+        addBotMsg(`Thank you ${lead.name}! 🙌<br><br>I have everything I need. Let me analyze your profile now...`);
+        setTimeout(()=>runProcessing(),1200);
+      });
+    }
+  },s.delay);
+}
+
+function handleAnswer(key,val){
+  answers[key]=val;
+  hideQuickReplies();
+  hideTextInput();
+  addUserMsg(val);
+  
+  currentStep++;
+  if(currentStep<steps.length){
+    const next=steps[currentStep];
+    setTimeout(()=>{
+      if(next.type==='question'){
+        showTyping().then(()=>{
+          addBotMsg(next.msg);
+          if(next.free){showTextInput(next.placeholder||'Type your answer...',next.key);}
+          else{showQuickReplies(next.opts,next.key);}
+        });
+      }else if(next.type==='end'){
+        showTyping().then(()=>{
+          addBotMsg(`Thank you ${lead.name}! 🙌<br><br>I have everything I need. Let me analyze your profile now...`);
+          setTimeout(()=>runProcessing(),1400);
+        });
+      }
+    },900);
+  }
+}
+
+function sendText(){
+  const inp=document.getElementById('chat-inp');
+  const val=inp.value.trim();
+  if(!val)return;
+  inp.value='';
+  const key=inp.getAttribute('data-key')||'custom';
+  handleAnswer(key,val);
+}
+
+// ── UI HELPERS ──
+function addBotMsg(html){
+  const msgs=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg';
+  d.innerHTML=`<div class="mavt bot">N</div><div><div class="bubble bot">${html}</div><div class="btime">${getTime()}</div></div>`;
+  msgs.appendChild(d);
+  scrollBottom();
+}
+
+function addUserMsg(txt){
+  const msgs=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg user';
+  d.innerHTML=`<div class="mavt user">U</div><div><div class="bubble user">${txt}</div><div class="btime">${getTime()}</div></div>`;
+  msgs.appendChild(d);
+  scrollBottom();
+}
+
+function showTyping(){
+  return new Promise(res=>{
+    const msgs=document.getElementById('msgs');
+    const d=document.createElement('div');
+    d.className='typing-msg';d.id='typing';
+    d.innerHTML=`<div class="mavt bot">N</div><div class="tdots"><div class="td"></div><div class="td"></div><div class="td"></div></div>`;
+    msgs.appendChild(d);scrollBottom();
+    setTimeout(()=>{d.remove();res();},900+Math.random()*400);
+  });
+}
+
+function showQuickReplies(opts,key){
+  const qr=document.getElementById('qr');
+  qr.style.display='flex';
+  qr.innerHTML=opts.map(o=>`<button class="qbtn" onclick="handleAnswer('${key}',this.textContent.replace(/[🏠🏡🌿🏢🚗🚙🛻💎❤️🏥🇬🇧🇺🇸🇦🇺🌍🔧🎨⚡🌿👨‍👩‍👧💼🏕📱📋💻]/g,'').trim())">${o}</button>`).join('');
+}
+
+function hideQuickReplies(){
+  const qr=document.getElementById('qr');
+  qr.style.display='none';qr.innerHTML='';
+}
+
+function showTextInput(placeholder,key){
+  const ia=document.getElementById('inp-area');
+  const inp=document.getElementById('chat-inp');
+  ia.classList.remove('hidden');
+  inp.placeholder=placeholder||'Type your answer...';
+  inp.setAttribute('data-key',key);
+  inp.focus();
+}
+
+function hideTextInput(){
+  document.getElementById('inp-area').classList.add('hidden');
+  document.getElementById('chat-inp').value='';
+}
+
+function scrollBottom(){
+  const msgs=document.getElementById('msgs');
+  setTimeout(()=>msgs.scrollTo({top:msgs.scrollHeight,behavior:'smooth'}),50);
+}
+
+function getTime(){
+  return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── PROCESSING ──
+async function runProcessing(){
+  document.getElementById('chat-screen').classList.remove('on');
+  document.getElementById('proc-overlay').classList.add('on');
+  
+  const agents=[
+    {id:'ag-1',chk:'chk-1',st:'Processing responses...',done:'Responses collected',delay:1200},
+    {id:'ag-2',chk:'chk-2',st:'Analyzing lead seriousness...',done:'Lead qualified',delay:1200},
+    {id:'ag-3',chk:'chk-3',st:'Generating score & report...',done:'Report generated',delay:1200},
+    {id:'ag-4',chk:'chk-4',st:'Sending notifications...',done:'Notification sent',delay:1000}
+  ];
+  
+  let progress=0;
+  const fill=document.getElementById('proc-fill');
+  
+  for(let i=0;i<agents.length;i++){
+    const a=agents[i];
+    const el=document.getElementById(a.id);
+    const chk=document.getElementById(a.chk);
+    el.querySelector('.ag-st').textContent=a.st;
+    el.classList.add('active');
+    fill.style.width=((i/agents.length)*100)+'%';
+    await sleep(a.delay);
+    el.classList.remove('active');
+    el.classList.add('done');
+    el.querySelector('.ag-st').textContent=a.done;
+    chk.textContent='✅';
+    fill.style.width=(((i+1)/agents.length)*100)+'%';
+    await sleep(200);
+  }
+  
+  await sleep(600);
+  
+  // Compute score
+  const score=scoreLead(answers);
+  const status=score>=8?'hot':score>=5?'warm':'cold';
+  
+  lead.interest=answers.interest||'—';
+  lead.location=answers.location||answers.city||lead.city;
+  lead.budget=answers.budget||'—';
+  lead.timeline=answers.timeline||'—';
+  lead.purpose=answers.purpose||answers.q5||'—';
+  lead.score=score;
+  lead.status=status;
+  lead.date=new Date().toISOString();
+  lead.id='l_'+Date.now();
+  
+  // Save
+  const allLeads=JSON.parse(localStorage.getItem('nx_leads')||'[]');
+  allLeads.push(lead);
+  localStorage.setItem('nx_leads',JSON.stringify(allLeads));
+  
+  document.getElementById('proc-overlay').classList.remove('on');
+  showReport(lead,answers,score,status);
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ── REPORT ──
+function showReport(lead,answers,score,status){
+  document.getElementById('report-screen').classList.add('on');
+  
+  // Notification email
+  if(notifEmail)document.getElementById('rpt-notify-email').textContent=notifEmail;
+  
+  // Score ring
+  const circle=document.getElementById('score-circle');
+  const circumference=251;
+  const da=(score/10)*circumference;
+  const col=status==='hot'?'#ff4d6d':status==='warm'?'#ff9f1c':'#4ea8de';
+  circle.style.stroke=col;
+  circle.style.strokeDasharray='0 251';
+  setTimeout(()=>{circle.style.transition='stroke-dasharray 1.2s ease';circle.style.strokeDasharray=`${da} ${circumference}`;},200);
+  
+  // Score number animation
+  const numEl=document.getElementById('rpt-score-num');
+  let n=0;const iv=setInterval(()=>{n++;numEl.textContent=n;if(n>=score)clearInterval(iv);},80);
+  numEl.style.color=col;
+  
+  // Status badge
+  const badge=document.getElementById('rpt-status-badge');
+  if(status==='hot'){badge.className='rpt-status';badge.style.cssText='background:rgba(255,77,109,.12);color:#ff4d6d;display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:10px';badge.innerHTML='🔥 HOT LEAD';}
+  else if(status==='warm'){badge.style.cssText='background:rgba(255,159,28,.12);color:#ff9f1c;display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:10px';badge.innerHTML='⚡ WARM LEAD';}
+  else{badge.style.cssText='background:rgba(78,168,222,.12);color:#4ea8de;display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:10px';badge.innerHTML='❄ COLD LEAD';}
+  
+  // Headline
+  document.getElementById('rpt-headline').textContent=`${score >= 8 ? '🎉 ' : ''}${lead.name} — ${status.charAt(0).toUpperCase()+status.slice(1)} Lead`;
+  document.getElementById('rpt-subline').textContent=`Score: ${score}/10 · ${client?.industry||'Real Estate'} · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  
+  // Rows
+  const cfg2=getCfg();
+  const rows=[
+    ['Lead Name',lead.name],
+    ['Phone',lead.phone],
+    ['City',lead.city],
+    ['Industry',lead.industry],
+    [cfg2.fields[0]||'Interest',lead.interest],
+    [cfg2.fields[1]||'Location',lead.location],
+    [cfg2.fields[2]||'Budget',lead.budget],
+    [cfg2.fields[3]||'Timeline',lead.timeline],
+    [cfg2.fields[4]||'Purpose',lead.purpose],
+    ['Lead Score',`${score}/10`],
+    ['Status',status.toUpperCase()],
+    ['Date',new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})]
+  ];
+  document.getElementById('rpt-rows').innerHTML=rows.filter(([k,v])=>v&&v!=='—').map(([k,v])=>`<div class="rpt-row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`).join('');
+  
+  // Score factors
+  const budg=answers.budget||'';
+  const tl=answers.timeline||'';
+  const hasLoc=(answers.location||'').length>2;
+  const budScore=budg.includes('3 Crore+')||budg.includes('$100K')||budg.includes('5 Lakh+')||budg.includes('1 Crore+')?3:budg?2:0;
+  const tlScore=tl.includes('Immediately')||tl.includes('This Week')||tl.includes('Urgently')?3:tl.includes('Month')?2:tl?1:0;
+  const purpScore=(answers.purpose||answers.q5)?2:0;
+  const locScore=hasLoc?1:0;
+
+  document.getElementById('score-factors').innerHTML=[
+    ['Budget Signal',budScore,3,col],
+    ['Timeline Urgency',tlScore,3,col],
+    ['Purpose Clarity',purpScore,2,col],
+    ['Location Detail',locScore,1,col],
+    ['Profile Completeness',Math.min(score-budScore-tlScore-purpScore-locScore+2,4),4,col]
+  ].map(([lb,val,max,c])=>`
+    <div class="factor-bar">
+      <div class="fb-label"><span class="fb-lb">${lb}</span><span class="fb-vl">${val}/${max}</span></div>
+      <div class="fb-track"><div class="fb-fill" style="width:${(val/max)*100}%;background:${c}"></div></div>
+    </div>`).join('');
+}
+
+function shareReport(){
+  const text=`Lead Report — Nexia Tech\n\nName: ${lead.name}\nPhone: ${lead.phone}\nIndustry: ${lead.industry}\nInterest: ${lead.interest}\nBudget: ${lead.budget}\nTimeline: ${lead.timeline}\nScore: ${lead.score}/10\nStatus: ${lead.status.toUpperCase()}`;
+  if(navigator.share){navigator.share({title:'Nexia Lead Report',text});}
+  else{navigator.clipboard.writeText(text).then(()=>alert('Report copied to clipboard!'));}
+}
+
+// ── API-POWERED FLOW ──
+async function startAPIChat(name,phone,city){
+  const sysPrompt=`You are Nexia AI, a professional lead qualification assistant for ${client?.name||'a business'} in the ${client?.industry||'Real Estate'} industry located in ${client?.city||'Pakistan'}. 
+
+Your job: Have a natural, friendly conversation to collect lead qualification data. Ask ONE question at a time. Be warm, professional, and concise.
+
+Collect these details naturally:
+1. What they're looking for (type/interest)
+2. Preferred location/area  
+3. Budget range
+4. Timeline/urgency
+5. Purpose/intent
+
+After collecting all info, respond with JSON in this EXACT format (and nothing else after collecting all 5 answers):
+{"LEAD_COMPLETE":true,"interest":"...","location":"...","budget":"...","timeline":"...","purpose":"..."}
+
+Keep messages short (2-3 sentences max). Use emojis sparingly. Be conversational. Address them as ${name}.`;
+
+  convoHistory=[{role:'user',content:`Hi, my name is ${name}, phone: ${phone}, city: ${city}. I'm interested in your services.`}];
+  
+  try{
+    const resp=await callClaude(sysPrompt,convoHistory);
+    addBotMsg(resp);
+    convoHistory.push({role:'assistant',content:resp});
+    showTextInput('Type your response...',`api-msg`);
+    document.getElementById('chat-inp').setAttribute('data-mode','api');
+    document.getElementById('chat-inp').removeEventListener('keydown',apiKeyHandler);
+    document.getElementById('chat-inp').addEventListener('keydown',apiKeyHandler);
+    document.querySelector('.send-btn').onclick=sendAPIText;
+  }catch(err){
+    useAPI=false;
+    steps=buildSteps(name);currentStep=0;processStep();
+  }
+}
+
+function apiKeyHandler(e){if(e.key==='Enter')sendAPIText();}
+
+async function sendAPIText(){
+  const inp=document.getElementById('chat-inp');
+  const val=inp.value.trim();if(!val)return;
+  inp.value='';
+  addUserMsg(val);
+  convoHistory.push({role:'user',content:val});
+  
+  const typProm=showTyping();
+  try{
+    const sysPrompt=`You are Nexia AI for ${client?.name||'a business'} (${client?.industry||'Real Estate'}). Collect: interest, location, budget, timeline, purpose. ONE question at a time. When done, output ONLY: {"LEAD_COMPLETE":true,"interest":"...","location":"...","budget":"...","timeline":"...","purpose":"..."}`;
+    await typProm;
+    const resp=await callClaude(sysPrompt,convoHistory);
+    
+    // Check if complete
+    if(resp.includes('LEAD_COMPLETE')){
+      try{
+        const start=resp.indexOf('{');const end=resp.lastIndexOf('}')+1;
+        const data=JSON.parse(resp.substring(start,end));
+        if(data.LEAD_COMPLETE){
+          answers=data;
+          addBotMsg(`Thank you ${lead.name}! 🙌 Let me analyze your profile now...`);
+          setTimeout(()=>runProcessing(),1400);
+          hideTextInput();return;
+        }
+      }catch(e){}
+    }
+    
+    addBotMsg(resp);
+    convoHistory.push({role:'assistant',content:resp});
+  }catch(err){
+    addBotMsg('I apologize, there was a connection issue. Please try again.');
+  }
+}
+
+async function callClaude(system,messages){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,system,messages})
+  });
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error?.message||'API error');
+  return data.content.map(b=>b.text||'').join('');
+}
+</script>
+</body>
+</html>
